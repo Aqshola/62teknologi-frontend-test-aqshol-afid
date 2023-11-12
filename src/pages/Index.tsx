@@ -98,6 +98,23 @@ function Index() {
                     <p className="text-xs font-mono">
                       11 Madison Ave, New York, NY 10010
                     </p>
+                    <div className="flex gap-1 items-center">
+                      <svg
+                        className="h-4 w-4"
+                        width="63"
+                        height="95"
+                        viewBox="0 0 63 95"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M0 0H62.7V94.05H0V0ZM52.25 83.6V10.45H41.8V20.9H20.9V10.45H10.45V83.6H52.25ZM26.125 62.7H36.575V73.15H26.125V62.7Z"
+                          fill="black"
+                        />
+                      </svg>
+
+                      <p className="font-mono text-xs"> (62)8899741832</p>
+                    </div>
                     <div className="text-xs font-mono bg-ud-red w-fit p-1 text-white mt-1">
                       Closed
                     </div>
@@ -113,17 +130,6 @@ function Index() {
                       Deliver, Takeout
                     </div>
                   </div>
-                  {/* <h3>Best Bagel & Coffee</h3>
-            <div className="flex gap-3">
-              <p>225 W 35th St ew York, NY 10001</p>
-              <p>4.5</p>
-            </div>
-            <div>
-              <img
-                src="https://s3-media1.fl.yelpcdn.com/bphoto/91RtGGwbZYMurzxGHAbhzw/o.jpg"
-                alt="restaurant"
-              />
-            </div> */}
                 </div>
               </div>
             </div>

@@ -1,6 +1,58 @@
+import Card from "@/components/Base/Card";
+import Loading from "@/components/Base/Loading";
+import Pagination from "@/components/Base/Pagination";
+import { LIMIT_DATA_URL } from "@/constant";
+import useBusinessStore from "@/store/useBusinessStore";
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 
 function Index() {
+  const businessStore = useBusinessStore((state) => state);
+  const [formData, setformData] = useState({
+    location: "",
+    open_now: false,
+    keyword: "",
+    term: "",
+    latitude: 0,
+    longitude: 0,
+  });
+  const [errorMessage, seterrorMessage] = useState("");
+
+  function _handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const currentFormValue = formData;
+    const keyField = e.target.name;
+    const typeField = e.target.type;
+    const valueField = e.target.value;
+    const valueChecked = e.target.checked;
+
+    Object.assign(currentFormValue, {
+      [keyField]: typeField == "checkbox" ? valueChecked : valueField,
+    });
+    setformData(currentFormValue);
+  }
+  async function _handleSearch() {
+    seterrorMessage("");
+    try {
+      await businessStore.searchData({
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        limit: LIMIT_DATA_URL,
+        location: formData.location,
+        offset: 1,
+        open_now: formData.open_now,
+        term: formData.term,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        seterrorMessage(error.message);
+      }
+    }
+  }
+
+  async function _handleSubmtiSearch(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await _handleSearch();
+  }
   return (
     <>
       <Helmet>
@@ -19,12 +71,15 @@ function Index() {
 
         {/* FORM */}
         <section id="search" className="flex  w-fit mx-auto mt-10">
-          <form>
+          <form onSubmit={_handleSubmtiSearch}>
             <div className="flex gap-5">
               <input
                 type="text"
                 placeholder="Search Location"
                 className="px-3 w-full py-1 placeholder:text-sm font-mono placeholder:text-ud-gray outline-ud-gray"
+                name="location"
+                required
+                onChange={_handleChange}
               />
             </div>
             <div className="flex flex-col mt-2 gap-2">
@@ -42,13 +97,16 @@ function Index() {
                   type="text"
                   placeholder="Keyword"
                   className="px-3 py-1 placeholder:text-sm font-mono placeholder:text-ud-gray outline-ud-gray text-sm"
+                  name="term"
+                  onChange={_handleChange}
                 />
               </div>
               <div className="flex gap-3">
                 <div className="flex gap-2 ">
                   <input
+                    onChange={_handleChange}
                     type="checkbox"
-                    name="opennow"
+                    name="open_now"
                     id="opennow"
                     className="accent-white"
                   />
@@ -77,151 +135,50 @@ function Index() {
         </section>
 
         {/* CARDLIST */}
-        <section id="card" className="mt-7">
-          <h2 className="text-white text-2xl font-ud-1 font-bold">List</h2>
+        {!businessStore.loading &&
+          errorMessage == "" &&
+          businessStore.list.length > 0 && (
+            <section id="card" className="mt-7">
+              <h2 className="text-white text-2xl font-ud-1 font-bold">List</h2>
 
-          <div className="mt-4">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 md:col-span-4">
-                <div className="w-full bg-ud-white flex ">
-                  <div className="flex-[1]">
-                    <img
-                      className="flex w-full h-full object-cover"
-                      src="https://s3-media1.fl.yelpcdn.com/bphoto/91RtGGwbZYMurzxGHAbhzw/o.jpg"
-                      alt="restaurant"
-                    />
-                  </div>
-                  <div className="flex flex-col flex-[2] p-2 gap-1">
-                    <h3 className="font-ud-2 text-2xl font-medium">
-                      Best Bagel & Coffee
-                    </h3>
-                    <p className="text-xs font-mono">
-                      11 Madison Ave, New York, NY 10010
-                    </p>
-                    <div className="flex gap-1 items-center">
-                      <svg
-                        className="h-4 w-4"
-                        width="63"
-                        height="95"
-                        viewBox="0 0 63 95"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M0 0H62.7V94.05H0V0ZM52.25 83.6V10.45H41.8V20.9H20.9V10.45H10.45V83.6H52.25ZM26.125 62.7H36.575V73.15H26.125V62.7Z"
-                          fill="black"
-                        />
-                      </svg>
-
-                      <p className="font-mono text-xs"> (62)8899741832</p>
+              <div className="mt-4">
+                <div className="grid grid-cols-12 gap-4">
+                  {businessStore.list.map((el) => (
+                    <div className="col-span-12 md:col-span-4 auto">
+                      <Card
+                        key={el.id}
+                        title={el.name}
+                        address={el.location.display_address}
+                        img={el.image_url}
+                        is_closed={el.is_closed}
+                        phone={el.display_phone}
+                        rating={el.rating}
+                        review_count={el.review_count}
+                        transaction={el.transactions}
+                      />
                     </div>
-                    <div className="text-xs font-mono bg-ud-red w-fit p-1 text-white mt-1">
-                      Closed
-                    </div>
-                    <div className="flex">
-                      <p className="text-sm font-bold font-mono text-ud-orange">
-                        4.5
-                      </p>
-                      <p className="text-sm font-mono text-ud-gray">
-                        (199 reviews)
-                      </p>
-                    </div>
-                    <div className="text-sm mt-2 font-bold font-mono text-ud-lightgreen">
-                      Deliver, Takeout
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            </section>
+          )}
+
+        {!businessStore.loading && errorMessage != "" && (
+          <div className="w-full justify-center mt-24">
+            <p className="text-xl font-mono text-white font-bold">
+              {errorMessage}
+            </p>
           </div>
-        </section>
+        )}
+
+        {businessStore.loading && (
+          <div className="w-full h-full flex justify-center mt-24">
+            <Loading />
+          </div>
+        )}
 
         {/* PAGINATION */}
-        <div className="flex text-white gap-2 mt-10 justify-center font-ud-2 text-2xl items-center">
-          <button>
-            <svg
-              width="95"
-              height="110"
-              viewBox="0 0 95 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-            >
-              <path
-                d="M62.7 109.725L62.7 94.05L47.025 94.05L47.025 109.725L62.7 109.725ZM31.35 78.375L31.35 94.05L47.025 94.05L47.025 78.375L31.35 78.375ZM15.675 62.7L15.675 78.375L31.35 78.375L31.35 62.7L15.675 62.7ZM15.675 47.025L7.13037e-07 47.025L-6.57315e-07 62.7L15.675 62.7L15.675 47.025ZM31.35 31.35L31.35 47.025L15.675 47.025L15.675 31.35L31.35 31.35ZM31.35 31.35L47.025 31.35L47.025 15.675L31.35 15.675L31.35 31.35ZM62.7 4.76837e-06L62.7 15.675L47.025 15.675L47.025 3.39802e-06L62.7 4.76837e-06Z"
-                fill="white"
-              />
-              <path
-                d="M94.7 109.725L94.7 94.05L79.025 94.05L79.025 109.725L94.7 109.725ZM63.35 78.375L63.35 94.05L79.025 94.05L79.025 78.375L63.35 78.375ZM47.675 62.7L47.675 78.375L63.35 78.375L63.35 62.7L47.675 62.7ZM47.675 47.025L32 47.025L32 62.7L47.675 62.7L47.675 47.025ZM63.35 31.35L63.35 47.025L47.675 47.025L47.675 31.35L63.35 31.35ZM63.35 31.35L79.025 31.35L79.025 15.675L63.35 15.675L63.35 31.35ZM94.7 4.76837e-06L94.7 15.675L79.025 15.675L79.025 3.39802e-06L94.7 4.76837e-06Z"
-                fill="white"
-              />
-            </svg>
-          </button>
-          <button>
-            <svg
-              className="w-5 h-5"
-              width="63"
-              height="110"
-              viewBox="0 0 63 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M62.7 0V15.675H47.025V0H62.7ZM31.35 31.35V15.675H47.025V31.35H31.35ZM15.675 47.025V31.35H31.35V47.025H15.675ZM15.675 62.7H0V47.025H15.675V62.7ZM31.35 78.375V62.7H15.675V78.375H31.35ZM31.35 78.375H47.025V94.05H31.35V78.375ZM62.7 109.725V94.05H47.025V109.725H62.7Z"
-                fill="white"
-              />
-            </svg>
-          </button>
-          <button className="bg-white text-black w-7 h-7 flex justify-center items-center">
-            1
-          </button>
-          <button className="border-dashed border-white border w-7 h-7 flex justify-center items-center">
-            2
-          </button>
-          <button className="border-dashed border-white border w-7 h-7 flex justify-center items-center">
-            3
-          </button>
-          <button className="border-dashed border-white border w-7 h-7 flex justify-center items-center">
-            4
-          </button>
-          <button className="border-dashed border-white border w-7 h-7 flex justify-center items-center">
-            5
-          </button>
-          <button>
-            <svg
-              className="w-5 h-5"
-              width="63"
-              height="110"
-              viewBox="0 0 63 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0 0V15.675H15.675V0H0ZM31.35 31.35V15.675H15.675V31.35H31.35ZM47.025 47.025V31.35H31.35V47.025H47.025ZM47.025 62.7H62.7V47.025H47.025V62.7ZM31.35 78.375V62.7H47.025V78.375H31.35ZM31.35 78.375H15.675V94.05H31.35V78.375ZM0 109.725V94.05H15.675V109.725H0Z"
-                fill="white"
-              />
-            </svg>
-          </button>
-          <button>
-            <svg
-              className="w-5 h-5"
-              width="95"
-              height="110"
-              viewBox="0 0 95 110"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M32 0V15.675H47.675V0H32ZM63.35 31.35V15.675H47.675V31.35H63.35ZM79.025 47.025V31.35H63.35V47.025H79.025ZM79.025 62.7H94.7V47.025H79.025V62.7ZM63.35 78.375V62.7H79.025V78.375H63.35ZM63.35 78.375H47.675V94.05H63.35V78.375ZM32 109.725V94.05H47.675V109.725H32Z"
-                fill="white"
-              />
-              <path
-                d="M0 0V15.675H15.675V0H0ZM31.35 31.35V15.675H15.675V31.35H31.35ZM47.025 47.025V31.35H31.35V47.025H47.025ZM47.025 62.7H62.7V47.025H47.025V62.7ZM31.35 78.375V62.7H47.025V78.375H31.35ZM31.35 78.375H15.675V94.05H31.35V78.375ZM0 109.725V94.05H15.675V109.725H0Z"
-                fill="white"
-              />
-            </svg>
-          </button>
-        </div>
+        {businessStore.list.length > 0 && <Pagination />}
       </div>
     </>
   );

@@ -9,7 +9,7 @@ export default {
         "ud-red": "#d82b2b",
         "ud-orange": "#ff7124",
         "ud-gray": "#99a9c7",
-        "ud-blue": "#f1bf59",
+        "ud-blue": "#67a4e0",
         "ud-lightgreen": "#52a593",
       },
       fontFamily: {

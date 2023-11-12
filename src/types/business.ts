@@ -5,11 +5,28 @@ export interface Business {
   image_url: string;
   is_closed: boolean;
   rating: number;
-  display_address: Array<string>;
+  location: {
+    display_address: Array<string>;
+  };
   phone: string;
   display_phone: string;
-  transaction: string;
+  transactions: Array<string>;
   review_count: number;
 }
 
-export type Business_list = Array<Business>;
+export type Business_List = Array<Business>;
+
+export type Business_Search_Request = {
+  location: string;
+  latitude: number;
+  longitude: number;
+  open_now: boolean;
+  limit: number;
+  offset: number;
+  term: string;
+};
+
+export type Business_Search_Response = {
+  businesses: Business_List;
+  total: number;
+};

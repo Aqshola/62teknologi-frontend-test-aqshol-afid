@@ -17,11 +17,12 @@ type DataForm = {
 };
 
 function Index() {
+  const isNavigateExist = navigator.geolocation;
+
   const businessStore = useBusinessStore((state) => state);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentPage = Number(searchParams.get("page")) || 1;
-  const isSearch = searchParams.get("search") == "true";
   const queryFormData = {
     location: String(searchParams.get("location") || ""),
     open_now: Boolean(searchParams.get("open_now") || false),
@@ -30,6 +31,9 @@ function Index() {
     longitude: Number(searchParams.get("longitude") || 0),
   };
 
+  const [nearbyLocation, setnearbyLocation] = useState(
+    Boolean(queryFormData.latitude && queryFormData.longitude)
+  );
   const [formData, setformData] = useState<DataForm>({
     location: "",
     open_now: false,
@@ -40,14 +44,16 @@ function Index() {
   const [errorMessage, seterrorMessage] = useState("");
 
   useEffect(() => {
-    _handleSearch({
-      latitude: queryFormData.latitude,
-      longitude: queryFormData.longitude,
-      location: queryFormData.location,
-      offset: currentPage,
-      open_now: queryFormData.open_now,
-      term: queryFormData.term,
-    });
+    if (queryFormData.location) {
+      _handleSearch({
+        latitude: queryFormData.latitude,
+        longitude: queryFormData.longitude,
+        location: queryFormData.location,
+        offset: currentPage,
+        open_now: queryFormData.open_now,
+        term: queryFormData.term,
+      });
+    }
   }, []);
 
   function _handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -71,16 +77,36 @@ function Index() {
         if (element) {
           objReq[key] = element;
         }
-
-        objReq["search"] = true;
       }
     }
 
     setSearchParams(objReq);
   }
 
+  function _handleChangeLocation() {
+    if (nearbyLocation) {
+      setformData({
+        ...formData,
+        latitude: 0,
+        longitude: 0,
+      });
+      setnearbyLocation(false);
+      return;
+    }
+    _handleLocation((latitude, longitude) => {
+      setnearbyLocation(true);
+      setformData({
+        ...formData,
+        location: "",
+        longitude,
+        latitude,
+      });
+    });
+  }
+
   async function _handleSearch(props: View_Business_Search_Request) {
     seterrorMessage("");
+
     try {
       await businessStore.searchData({
         latitude: props.latitude,
@@ -101,6 +127,7 @@ function Index() {
   async function _handleSubmtiSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     _handleQueryUrl(formData);
+
     await _handleSearch({
       latitude: formData.latitude,
       longitude: formData.longitude,
@@ -131,6 +158,17 @@ function Index() {
     _handleQueryUrl(additionalReq);
   }
 
+  async function _handleLocation(
+    callback: (latitude: number, longitude: number) => void
+  ) {
+    navigator.geolocation.getCurrentPosition(
+      (coordinate) => {
+        callback(coordinate.coords.latitude, coordinate.coords.longitude);
+      },
+      (err) => console.log(err)
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -150,16 +188,18 @@ function Index() {
         {/* FORM */}
         <section id="search" className="flex  w-fit mx-auto mt-10">
           <form onSubmit={_handleSubmtiSearch}>
-            <div className="flex gap-5">
-              <input
-                type="text"
-                placeholder="Search Location"
-                className="px-3 w-full py-1 placeholder:text-sm font-mono placeholder:text-ud-gray outline-ud-gray"
-                name="location"
-                required
-                onChange={_handleChange}
-              />
-            </div>
+            {!nearbyLocation && (
+              <div className="flex gap-5">
+                <input
+                  type="text"
+                  placeholder="Search Location"
+                  className="px-3 w-full py-1 placeholder:text-sm font-mono placeholder:text-ud-gray outline-ud-gray"
+                  name="location"
+                  required
+                  onChange={_handleChange}
+                />
+              </div>
+            )}
             <div className="flex flex-col mt-2 gap-2">
               <p className="text-white font-mono mt-2 font-bold">Filter</p>
 
@@ -192,17 +232,21 @@ function Index() {
                     Open Now
                   </label>
                 </div>
-                <div className="flex gap-2 ">
-                  <input
-                    type="checkbox"
-                    name="location"
-                    id="location"
-                    className="accent-white"
-                  />
-                  <label htmlFor="location" className="text-white font-mono">
-                    Current location
-                  </label>
-                </div>
+                {isNavigateExist && (
+                  <div className="flex gap-2 ">
+                    <input
+                      type="checkbox"
+                      name="location"
+                      id="location"
+                      className="accent-white"
+                      defaultChecked={nearbyLocation}
+                      onChange={_handleChangeLocation}
+                    />
+                    <label htmlFor="location" className="text-white font-mono">
+                      Current location
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -212,7 +256,7 @@ function Index() {
           </form>
         </section>
 
-        {(queryFormData.location || formData.location) && (
+        {(queryFormData.location || formData.location) && !nearbyLocation && (
           <div>
             <h3 className="mt-5 font-ud-1 font-bold capitalize text-center text-5xl text-ud-orange">
               - {queryFormData.location || formData.location} -
@@ -249,6 +293,16 @@ function Index() {
                 </div>
               </div>
             </section>
+          )}
+
+        {!businessStore.loading &&
+          businessStore.list.length == 0 &&
+          errorMessage == "" && (
+            <div className="w-full justify-center mt-24">
+              <p className="text-xl font-mono text-white font-bold text-center">
+                Business Not Found
+              </p>
+            </div>
           )}
 
         {!businessStore.loading && errorMessage != "" && (

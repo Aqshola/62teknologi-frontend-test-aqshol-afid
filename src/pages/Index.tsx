@@ -3,20 +3,52 @@ import Loading from "@/components/Base/Loading";
 import Pagination from "@/components/Base/Pagination";
 import { LIMIT_DATA_URL } from "@/constant";
 import useBusinessStore from "@/store/useBusinessStore";
-import { useState } from "react";
+import { View_Business_Search_Request } from "@/types/business";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { useSearchParams } from "react-router-dom";
+
+type DataForm = {
+  location: string;
+  open_now: boolean;
+  term: string;
+  latitude: number;
+  longitude: number;
+};
 
 function Index() {
   const businessStore = useBusinessStore((state) => state);
-  const [formData, setformData] = useState({
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const isSearch = searchParams.get("search") == "true";
+  const queryFormData = {
+    location: String(searchParams.get("location") || ""),
+    open_now: Boolean(searchParams.get("open_now") || false),
+    term: String(searchParams.get("term") || ""),
+    latitude: Number(searchParams.get("latitude") || 0),
+    longitude: Number(searchParams.get("longitude") || 0),
+  };
+
+  const [formData, setformData] = useState<DataForm>({
     location: "",
     open_now: false,
-    keyword: "",
     term: "",
     latitude: 0,
     longitude: 0,
   });
   const [errorMessage, seterrorMessage] = useState("");
+
+  useEffect(() => {
+    _handleSearch({
+      latitude: queryFormData.latitude,
+      longitude: queryFormData.longitude,
+      location: queryFormData.location,
+      offset: currentPage,
+      open_now: queryFormData.open_now,
+      term: queryFormData.term,
+    });
+  }, []);
 
   function _handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const currentFormValue = formData;
@@ -30,17 +62,34 @@ function Index() {
     });
     setformData(currentFormValue);
   }
-  async function _handleSearch() {
+
+  function _handleQueryUrl(paramObj: any) {
+    const objReq: any = {};
+    for (const key in paramObj) {
+      if (Object.prototype.hasOwnProperty.call(paramObj, key)) {
+        const element = paramObj[key];
+        if (element) {
+          objReq[key] = element;
+        }
+
+        objReq["search"] = true;
+      }
+    }
+
+    setSearchParams(objReq);
+  }
+
+  async function _handleSearch(props: View_Business_Search_Request) {
     seterrorMessage("");
     try {
       await businessStore.searchData({
-        latitude: formData.latitude,
-        longitude: formData.longitude,
+        latitude: props.latitude,
+        longitude: props.longitude,
         limit: LIMIT_DATA_URL,
-        location: formData.location,
-        offset: 1,
-        open_now: formData.open_now,
-        term: formData.term,
+        location: props.location,
+        offset: props.offset,
+        open_now: props.open_now,
+        term: props.term,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -51,8 +100,37 @@ function Index() {
 
   async function _handleSubmtiSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    await _handleSearch();
+    _handleQueryUrl(formData);
+    await _handleSearch({
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      location: formData.location,
+      offset: 1,
+      open_now: formData.open_now,
+      term: formData.term,
+    });
   }
+
+  async function _handleChangePage(num: number) {
+    let additionalReq: any = { page: num };
+
+    additionalReq = {
+      ...queryFormData,
+      ...additionalReq,
+    };
+
+    _handleSearch({
+      latitude: queryFormData.latitude,
+      longitude: queryFormData.longitude,
+      location: queryFormData.location,
+      offset: num,
+      open_now: queryFormData.open_now,
+      term: queryFormData.term,
+    });
+
+    _handleQueryUrl(additionalReq);
+  }
+
   return (
     <>
       <Helmet>
@@ -134,19 +212,29 @@ function Index() {
           </form>
         </section>
 
+        {(queryFormData.location || formData.location) && (
+          <div>
+            <h3 className="mt-5 font-ud-1 font-bold capitalize text-center text-5xl text-ud-orange">
+              - {queryFormData.location || formData.location} -
+            </h3>
+          </div>
+        )}
         {/* CARDLIST */}
         {!businessStore.loading &&
           errorMessage == "" &&
           businessStore.list.length > 0 && (
-            <section id="card" className="mt-7">
+            <section id="card" className="mt-5">
               <h2 className="text-white text-2xl font-ud-1 font-bold">List</h2>
 
               <div className="mt-4">
                 <div className="grid grid-cols-12 gap-4">
-                  {businessStore.list.map((el) => (
-                    <div className="col-span-12 md:col-span-4 auto">
+                  {businessStore.list.map((el, idx) => (
+                    <div
+                      className="col-span-12 md:col-span-4 auto"
+                      key={el.id + idx}
+                    >
                       <Card
-                        key={el.id}
+                        key={el.id + idx}
                         title={el.name}
                         address={el.location.display_address}
                         img={el.image_url}
@@ -178,7 +266,18 @@ function Index() {
         )}
 
         {/* PAGINATION */}
-        {businessStore.list.length > 0 && <Pagination />}
+        {businessStore.list.length > 0 && (
+          <Pagination
+            handleChangePage={_handleChangePage}
+            current={currentPage}
+            limit={5}
+            total={
+              businessStore.totalPage > 1000
+                ? 1000 - LIMIT_DATA_URL
+                : businessStore.totalPage
+            }
+          />
+        )}
       </div>
     </>
   );

@@ -53,10 +53,10 @@ function Card(props: CardProps) {
         )}
         <div className="flex">
           <p className="text-sm font-bold font-mono text-ud-orange">
-            {props.rating}
+            Rating {props.rating}
           </p>
           <p className="text-sm font-mono text-ud-gray">
-            ({props.review_count}) reviews
+            ({props.review_count} reviews)
           </p>
         </div>
         <div className="text-sm mt-2 font-bold font-mono text-ud-blue flex gap-2 flex-wrap">

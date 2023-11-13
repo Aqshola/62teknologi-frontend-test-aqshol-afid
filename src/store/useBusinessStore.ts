@@ -6,6 +6,7 @@ import {
   QUERY_LONGITUDE,
   QUERY_OFFSET,
   QUERY_OPEN_NOW,
+  QUERY_TERM,
   SEARCH_URL,
 } from "@/constant";
 import {
@@ -58,7 +59,7 @@ const useBusinessStore = create<BusinessStoreState>()((set) => ({
     }
 
     if (param.term) {
-      dataUrl.searchParams.set(QUERY_OFFSET, param.term);
+      dataUrl.searchParams.set(QUERY_TERM, param.term);
     }
 
     try {
@@ -68,7 +69,6 @@ const useBusinessStore = create<BusinessStoreState>()((set) => ({
         },
       });
       const data = resultData.data as Business_Search_Response;
-      console.log(resultData);
 
       set({
         list: data.businesses,

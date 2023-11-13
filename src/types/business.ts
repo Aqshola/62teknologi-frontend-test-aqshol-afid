@@ -30,3 +30,8 @@ export type Business_Search_Response = {
   businesses: Business_List;
   total: number;
 };
+
+export type View_Business_Search_Request = Omit<
+  Business_Search_Request,
+  "limit"
+>;

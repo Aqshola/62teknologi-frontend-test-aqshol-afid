@@ -10,7 +10,7 @@ interface CardProps {
 }
 function Card(props: CardProps) {
   return (
-    <div className="w-full bg-ud-white flex h-full">
+    <div className="w-full bg-ud-white flex h-full card">
       <div className="flex-[1]">
         <img
           loading="lazy"

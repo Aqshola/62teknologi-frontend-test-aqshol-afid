@@ -267,7 +267,7 @@ function Index() {
         {!businessStore.loading &&
           errorMessage == "" &&
           businessStore.list.length > 0 && (
-            <section id="card" className="mt-5">
+            <section id="list-card" className="mt-5">
               <h2 className="text-white text-2xl font-ud-1 font-bold">List</h2>
 
               <div className="mt-4">

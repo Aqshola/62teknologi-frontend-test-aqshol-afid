@@ -12,8 +12,6 @@ function Pagination({ limit = 5, ...props }: PaginationProps) {
   const intersect = Math.ceil(props.current / limit);
   const upper = limit * (intersect - 1);
 
-  console.log(props.total);
-
   const listPage = Array(limit)
     .fill(0)
     .map((_, el) => el + 1 + upper);

@@ -1,3 +1,22 @@
+export interface UserBusiness {
+  id: string;
+  image_url: string;
+  name: string;
+  profile_url: string;
+}
+
+export interface CoordinateBusiness {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  text: string;
+  user: UserBusiness;
+}
+
 export interface Business {
   id: string;
   alias: string;
@@ -35,3 +54,10 @@ export type View_Business_Search_Request = Omit<
   Business_Search_Request,
   "limit"
 >;
+
+export type Business_Detail = Business & {
+  alias: string;
+  photos: Array<string>;
+  reviews: Array<Review>;
+  coordinates: CoordinateBusiness;
+};

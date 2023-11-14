@@ -6,7 +6,7 @@ import useBusinessStore from "@/store/useBusinessStore";
 import { View_Business_Search_Request } from "@/types/business";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 type DataForm = {
   location: string;
@@ -277,17 +277,19 @@ function Index() {
                       className="col-span-12 md:col-span-4 auto"
                       key={el.id + idx}
                     >
-                      <Card
-                        key={el.id + idx}
-                        title={el.name}
-                        address={el.location.display_address}
-                        img={el.image_url}
-                        is_closed={el.is_closed}
-                        phone={el.display_phone}
-                        rating={el.rating}
-                        review_count={el.review_count}
-                        transaction={el.transactions}
-                      />
+                      <Link to={`/detail/${el.id}`}>
+                        <Card
+                          key={el.id + idx}
+                          title={el.name}
+                          address={el.location.display_address}
+                          img={el.image_url}
+                          is_closed={el.is_closed}
+                          phone={el.display_phone}
+                          rating={el.rating}
+                          review_count={el.review_count}
+                          transaction={el.transactions}
+                        />
+                      </Link>
                     </div>
                   ))}
                 </div>
@@ -297,7 +299,8 @@ function Index() {
 
         {!businessStore.loading &&
           businessStore.list.length == 0 &&
-          errorMessage == "" && (
+          errorMessage == "" &&
+          nearbyLocation && (
             <div className="w-full justify-center mt-24">
               <p className="text-xl font-mono text-white font-bold text-center">
                 Business Not Found

@@ -13,3 +13,4 @@ export const QUERY_OFFSET = "offset";
 export const QUERY_TERM = "term";
 
 export const API_KEY = `Bearer ${import.meta.env.VITE_TOKEN}`;
+export const MAP_KEY = import.meta.env.VITE_APP_MAPBOX_ACCESS_TOKEN;

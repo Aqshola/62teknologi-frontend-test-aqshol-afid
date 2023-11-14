@@ -3,7 +3,7 @@ import MapGL from "react-map-gl";
 import Loading from "@/components/Base/Loading";
 import useBusinessStore from "@/store/useBusinessStore";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Slide } from "react-slideshow-image";
 import { LIMIT_DATA_URL, MAP_KEY } from "@/constant";
 import { Helmet } from "react-helmet-async";
@@ -11,6 +11,7 @@ import Pagination from "@/components/Base/Pagination";
 
 function Detail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const businessStore = useBusinessStore((state) => state);
   const [loadingReview, setloadingReview] = useState(false);
   const [offsetReview, setoffsetReview] = useState(1);
@@ -20,6 +21,10 @@ function Detail() {
     setloadingReview(true);
     await businessStore.reviewsPage(id || "", LIMIT_DATA_URL, num);
     setloadingReview(false);
+  }
+
+  function _handleBack() {
+    navigate(-1);
   }
 
   useEffect(() => {
@@ -46,7 +51,10 @@ function Detail() {
         <Helmet>
           <title>Business {businessStore.detail.name}</title>
         </Helmet>
-        <div className="flex flex-col mx-auto">
+        <button className="text-white md:ml-10 font-mono" onClick={_handleBack}>
+          Back
+        </button>
+        <div className="flex flex-col mx-auto mt-7">
           <h1 className="text-4xl text-center text-ud-white font-ud-2">
             {businessStore.detail.name}
           </h1>

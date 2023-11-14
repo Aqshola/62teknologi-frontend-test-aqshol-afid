@@ -11,15 +11,17 @@ interface PaginationProps {
 function Pagination({ limit = 5, ...props }: PaginationProps) {
   const intersect = Math.ceil(props.current / limit);
   const upper = limit * (intersect - 1);
+  const end = upper + limit;
+  const addition = props.current == end ? 1 : 0;
 
   const listPage = Array(limit)
     .fill(0)
-    .map((_, el) => el + 1 + upper);
+    .map((_, el) => el + 1 + upper + addition);
 
   return (
     <>
       <div className="flex text-white gap-2 mt-10 justify-center font-ud-2 text-2xl items-center">
-        {intersect > 1 && (
+        {(intersect > 1 || addition == 1) && (
           <>
             <button
               id="prev-last"

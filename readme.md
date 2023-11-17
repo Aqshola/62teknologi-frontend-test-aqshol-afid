@@ -32,6 +32,11 @@ Submission for Technical Test Enam Dua Technology
 
 ## Image
 
+![image](https://github.com/Aqshola/62teknologi-frontend-test-aqshol-afid/assets/52363719/328f8215-2be5-4a48-b179-8b60d6cb1065)
+
+![image](https://github.com/Aqshola/62teknologi-frontend-test-aqshol-afid/assets/52363719/b1d0df4b-623f-471c-bdb4-c98a7a0e4cbf)
+
+
 
 
 
